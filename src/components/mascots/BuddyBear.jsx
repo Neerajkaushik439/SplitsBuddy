@@ -30,7 +30,7 @@ export const BuddyBear = ({ className = "", size = 100, mood = "happy" }) => {
         fill="hsl(48 100% 85%)"
         stroke="hsl(15 32% 22%)"
         strokeWidth="2"
-        animate={mood === "excited" ? { scale: [1, 1.05, 1] } : {}}
+        animate={mood === "excited" ? { scale: [1, 1.05, 1] } : false}
         transition={{ repeat: Infinity, duration: 0.5 }}
       />
       
@@ -42,7 +42,7 @@ export const BuddyBear = ({ className = "", size = 100, mood = "happy" }) => {
       
       {/* Eyes */}
       <motion.g
-        animate={mood === "thinking" ? { y: [-1, 1, -1] } : {}}
+        animate={mood === "thinking" ? { y: [-1, 1, -1] } : false}
         transition={{ repeat: Infinity, duration: 2 }}
       >
         <circle cx="42" cy="32" r="4" fill="hsl(15 32% 22%)" />

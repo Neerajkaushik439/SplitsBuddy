@@ -81,15 +81,13 @@ export const PennyPiggy = ({ className = "", size = 100, hasCoins = false }) => 
       <ellipse cx="30" cy="88" rx="6" ry="4" fill="hsl(350 70% 70%)" />
       <ellipse cx="70" cy="88" rx="6" ry="4" fill="hsl(350 70% 70%)" />
       
-      {/* Tail */}
-      <motion.path
+      {/* Tail — static path avoids Framer interpolating d to undefined */}
+      <path
         d="M 85 55 Q 95 50 92 60 Q 88 65 93 70"
         fill="none"
         stroke="hsl(350 100% 86%)"
         strokeWidth="4"
         strokeLinecap="round"
-        animate={{ d: ["M 85 55 Q 95 50 92 60 Q 88 65 93 70", "M 85 55 Q 98 48 94 58 Q 90 68 95 72", "M 85 55 Q 95 50 92 60 Q 88 65 93 70"] }}
-        transition={{ repeat: Infinity, duration: 1 }}
       />
       
       {/* Floating Coins */}

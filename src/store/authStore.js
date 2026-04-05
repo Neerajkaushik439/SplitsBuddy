@@ -33,8 +33,8 @@ export const authStore = create((set) => ({
     return res.data.user;
   },
 
-  signup: async (name, email, password) => {
-    const res = await signupApi(name, email, password);
+  signup: async ({ name, email, password }) => {
+    const res = await signupApi({ name, email, password });
     localStorage.setItem("token", res.data.token);
 
     set({

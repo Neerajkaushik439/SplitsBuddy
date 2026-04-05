@@ -32,9 +32,18 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
     }
     catch(err){
-        console.log(err);
+        console.error('signup error:', err);
         if (err.message === 'User already exists') {
           return res.status(409).json({ message: err.message })
+        }
+        if (err.code === 11000) {
+          return res.status(409).json({ message: 'Email already registered' })
+        }
+        if (err.name === 'ValidationError') {
+          const msg = Object.values(err.errors || {})
+            .map((e) => e.message)
+            .join(' ')
+          return res.status(400).json({ message: msg || 'Validation failed' })
         }
         res.status(500).json({
             message: err.message || 'Server error',
