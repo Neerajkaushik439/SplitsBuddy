@@ -1,5 +1,6 @@
 const path = require('path')
 const express = require('express')
+const mongoose = require('mongoose')
 // Load backend/.env even when nodemon runs from repo root (cwd is not backend/)
 require('dotenv').config({ path: path.join(__dirname, '../.env') })
 
@@ -71,8 +72,16 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const notificationRoute = require("./routes/notificationRoutes");
 
 app.use(cookieParser());
-connectDB();
 app.use(express.json())
+
+function healthPayload(req, res) {
+  const ok = mongoose.connection.readyState === 1
+  res.status(ok ? 200 : 503).json({ ok, db: ok ? 'up' : 'down' })
+}
+// Register early; same paths work after deploy. Use /api/v1/health if a proxy only forwards /api/*
+app.get('/health', healthPayload)
+app.get('/api/health', healthPayload)
+app.get('/api/v1/health', healthPayload)
 
 app.use('/api/v1/auth', authRoute) 
 app.use('/api/v1/groups',groupRoute)
@@ -88,6 +97,14 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+async function start() {
+  await connectDB()
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Example app listening on port ${port}`)
+  })
+}
+
+start().catch((err) => {
+  console.error('Server failed to start:', err)
+  process.exit(1)
 })
