@@ -1,0 +1,2 @@
+# Backend is deployed on Render — do not build or route it on Vercel
+backend
