@@ -3,6 +3,17 @@ const express = require('express')
 // Load backend/.env even when nodemon runs from repo root (cwd is not backend/)
 require('dotenv').config({ path: path.join(__dirname, '../.env') })
 
+// Fail fast on Render if secrets are missing (otherwise signup/login return 500 with opaque errors).
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET_KEY']
+for (const key of requiredEnv) {
+  if (!process.env[key] || String(process.env[key]).trim() === '') {
+    console.error(
+      `[FATAL] Missing ${key}. Add it in Render → Environment (or backend/.env locally).`
+    )
+    process.exit(1)
+  }
+}
+
 const app = express()
 
 // CORS: echo Access-Control-Request-Headers on preflight (axios sends accept + content-type, etc.).
@@ -50,7 +61,6 @@ app.use((req, res, next) => {
 const port = process.env.PORT || 3001;
 const  { connectDB } = require('./config/db')
 const cookieParser = require("cookie-parser");
-const body = require("body-parser");
 const authRoute = require("./routes/authRoutes");
 const groupRoute = require("./routes/groupRoutes");
 const friendRoute = require("./routes/friendRoutes");
@@ -63,7 +73,6 @@ const notificationRoute = require("./routes/notificationRoutes");
 app.use(cookieParser());
 connectDB();
 app.use(express.json())
-app.use(body.json())
 
 app.use('/api/v1/auth', authRoute) 
 app.use('/api/v1/groups',groupRoute)

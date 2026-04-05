@@ -33,8 +33,11 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     }
     catch(err){
         console.log(err);
+        if (err.message === 'User already exists') {
+          return res.status(409).json({ message: err.message })
+        }
         res.status(500).json({
-            message:err.message,
+            message: err.message || 'Server error',
         })
     }   
 }
@@ -65,8 +68,11 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   }
   catch (error) {
     console.log(error);
+    if (error.message === "User doesn't exists" || error.message === 'invalid credentials') {
+      return res.status(401).json({ message: error.message })
+    }
     res.status(500).json({
-        message:error.message,
+        message: error.message || 'Server error',
     })
   }
 }
@@ -104,7 +110,7 @@ const googleLogin = async (req, res) => {
     const jwt = require('jsonwebtoken');
     const jwtToken = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET_KEY,
       { expiresIn: "5d" }
     );
 
