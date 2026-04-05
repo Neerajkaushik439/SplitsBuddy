@@ -1,13 +1,12 @@
 const path = require('path')
 const express = require('express')
-const cors = require('cors')
 // Load backend/.env even when nodemon runs from repo root (cwd is not backend/)
 require('dotenv').config({ path: path.join(__dirname, '../.env') })
 
 const app = express()
 
-// CORS: browsers require explicit origins when using credentials (axios withCredentials).
-// Set ALLOWED_ORIGINS on Render to comma-separated URLs, e.g. https://splits-buddy.vercel.app
+// CORS: echo Access-Control-Request-Headers on preflight (axios sends accept + content-type, etc.).
+// Without an exact match, browsers block the request. Set ALLOWED_ORIGINS on Render for extra domains.
 const defaultOrigins = [
   'http://localhost:8080',
   'http://localhost:5173',
@@ -20,19 +19,33 @@ const extraOrigins = (process.env.ALLOWED_ORIGINS || '')
   .filter(Boolean)
 const allowedOriginSet = new Set([...defaultOrigins, ...extraOrigins])
 
-const corsOptions = {
-  origin(origin, callback) {
-    if (!origin) return callback(null, true)
-    if (allowedOriginSet.has(origin)) return callback(null, true)
-    callback(null, false)
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  if (origin && allowedOriginSet.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
+  res.setHeader('Vary', 'Origin')
 
-app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
+  const requested = req.headers['access-control-request-headers']
+  if (requested) {
+    res.setHeader('Access-Control-Allow-Headers', requested)
+  } else {
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, Accept, X-Requested-With'
+    )
+  }
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+  )
+  res.setHeader('Access-Control-Max-Age', '86400')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
+  next()
+})
 
 const port = process.env.PORT || 3001;
 const  { connectDB } = require('./config/db')
